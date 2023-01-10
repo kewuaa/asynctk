@@ -62,11 +62,18 @@ def call_soon(callback, *args, context=None) -> asyncio.events.Handle:
     """
 
     return _callback_loop.call_soon_threadsafe(
-        callback, *args, context=context)
+        callback,
+        *args,
+        context=context,
+    )
 
 
 def call_at(
-        when: float, callback, *args, context=None) -> asyncio.events.Handle:
+    when: float,
+    callback,
+    *args,
+    context=None,
+) -> asyncio.events.Handle:
     """注册回调函数, 在指定时间调用.
 
     :param when: 指定时间
@@ -75,12 +82,21 @@ def call_at(
     """
 
     _callback = partial(
-        _callback_loop.call_at, when, callback, *args, context=context)
+        _callback_loop.call_at,
+        when,
+        callback,
+        *args,
+        context=context,
+    )
     return _callback_loop.call_soon_threadsafe(_callback)
 
 
 def call_later(
-        delay: float, callback, *args, context=None) -> asyncio.events.Handle:
+    delay: float,
+    callback,
+    *args,
+    context=None,
+) -> asyncio.events.Handle:
     """注册回调函数, delay秒后运行.
 
     :param delay: 注册函数运行时间
@@ -89,7 +105,12 @@ def call_later(
     """
 
     _callback = partial(
-        _callback_loop.call_later, delay, callback, *args, context=context)
+        _callback_loop.call_later,
+        delay,
+        callback,
+        *args,
+        context=context,
+    )
     return _callback_loop.call_soon_threadsafe(_callback)
 
 
@@ -201,15 +222,22 @@ class AsyncTk(tk.Tk):
 
             asyncio.events.set_event_loop(_callback_loop)
             _star_loop(
-                _callback_loop, callback=partial(self.after, 0, self.destroy))
+                _callback_loop,
+                callback=partial(self.after, 0, self.destroy),
+            )
 
         t = threading.Thread(
-            target=start_callbackloop_in_another_thread, args=())
+            target=start_callbackloop_in_another_thread,
+            args=(),
+        )
         t.start()
         try:
             super().mainloop(n=n)
         finally:
             t.join()
+
+    def add_done_before_exit(self, coro_func) -> None:
+        add_done_before_exit(coro_func)
 
     def quit_app(self) -> None:
         """退出."""
@@ -218,7 +246,8 @@ class AsyncTk(tk.Tk):
             if _done_before_exit:
                 tasks = [
                     _callback_loop.create_task(coro)
-                    for coro in _done_before_exit]
+                    for coro in _done_before_exit
+                ]
                 _done_before_exit.clear()
                 for task in tasks:
                     await task
